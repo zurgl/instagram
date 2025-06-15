@@ -1,0 +1,103 @@
+root := justfile_directory()
+export TYPST_ROOT := root
+set allow-duplicate-recipes := true
+set positional-arguments := true
+
+# @ ----------------
+# @ DEFAULT
+# @ ----------------
+
+[private]
+@default:
+  just -l
+
+# @ ----------------
+# @ Cleaning
+# @ ----------------
+
+[group('Cleaning')]
+[private]
+rm:
+    rm -rf ./tmp
+
+[group('Cleaning')]
+[private]
+mk: rm
+    mkdir ./tmp
+
+# @ ----------------
+# @ Images
+# @ ----------------
+
+[group('Images')]
+[private]
+@en-img n m: 
+    @typst compile --pages {{n}} pain-fr.typ ./tmp/en-{{m}}
+
+[group('Images')]
+[private]
+@fr-img n m: 
+    @typst compile --pages {{n}} pain-en.typ ./tmp/fr-{{m}}
+
+[group('Images')]
+[private]
+@ls-img: mk
+    #!/bin/bash
+    for j in $(seq 1 5)
+    do
+        last=$(echo -n $(printf '%02d.png' $j ))
+        typst compile --pages 1 pain-last.typ ./tmp/ls-${last}
+    done
+
+[group('Images')]
+imgs: ls-img
+    #!/bin/bash
+    echo "make images"
+    for i in $(seq 1 4)
+    do
+        for j in $(seq 1 10)
+        do
+            m=$(echo -n $(printf '%03d.png' $(( $(( $((i - 1)) * 10 )) + j)) ))
+            just fr-img $i ${m}
+            just en-img $i ${m}
+        done
+    done
+
+[group('Media')]
+vid: imgs
+    ffmpeg -y -r 1 -s 960x225 -i ./tmp/fr-%03d.png -vcodec libx264 -crf 25 ./tmp/fr-vid.mp4 2>/dev/null
+    ffmpeg -y -r 1 -s 960x225 -i ./tmp/en-%03d.png -vcodec libx264 -crf 25 ./tmp/en-vid.mp4 2>/dev/null
+    ffmpeg -y -r 1 -s 960x540 -i ./tmp/ls-%02d.png -vcodec libx264 -crf 25 ./tmp/ls-vid.mp4 2>/dev/null
+
+[group('Media')]
+[private]
+aud-i: vid
+    ffmpeg -y -ss 0 -to 40 -i ./assets/fenta.mp4 ./tmp/cfenta.mp4 2>/dev/null
+    ffmpeg -y -i ./tmp/cfenta.mp4 -vn -c:a copy ./tmp/fenta.m4a  2>/dev/null
+    ffmpeg -y -i ./tmp/fenta.m4a -filter_complex "[0:a]showwaves=s=1280x720:mode=line,format=yuv420p[v]" -map "[v]" -map 0:a -c:v libx264 -c:a copy ./tmp/fenta.mp4 2>/dev/null
+
+[group('Media')]
+aud: aud-i
+    ffmpeg -y -ss 0 -to 45 -i ./assets/fenta.mp4 ./tmp/cfenta1.mp4 2>/dev/null
+    ffmpeg -y -i ./tmp/cfenta1.mp4 -vn -c:a copy ./tmp/fenta1.m4a  2>/dev/null
+    ffmpeg -y -i ./tmp/fenta1.m4a -filter_complex "[0:a]showwaves=s=1280x720:mode=line,format=yuv420p[v]" -map "[v]" -map 0:a -c:v libx264 -c:a copy ./tmp/fenta1.mp4 2>/dev/null
+
+[private]
+@norm name w h:
+    ffmpeg -y -i ./tmp/{{name}}.mp4  -filter:v fps=30 ./tmp/fps-{{name}}.mp4 2>/dev/null 
+    ffmpeg -y -i ./tmp/fps-{{name}}.mp4 -vf scale={{w}}:{{h}} ./tmp/sca-{{name}}.mp4 2>/dev/null
+    ffmpeg -y -i ./tmp/sca-{{name}}.mp4 -b:v 1M -c:a copy ./tmp/tom-{{name}}.mp4 2>/dev/null
+
+[group('Montage')]
+normalize: aud
+    just norm fr-vid 960 225
+    just norm en-vid 960 225
+    just norm ls-vid 960 540
+    just norm fenta 960 90
+
+[group('Montage')]
+stack: normalize
+    ffmpeg -y -i ./tmp/tom-en-vid.mp4 -i ./tmp/tom-fenta.mp4 -i ./tmp/tom-fr-vid.mp4 -filter_complex "vstack=inputs=3" ./tmp/vres.mp4  2>/dev/null
+    ffmpeg -y -f concat -i file.txt -c copy -fflags +genpts ./tmp/bres.mp4  2>/dev/null
+    ffmpeg -y -i ./tmp/bres.mp4 -i ./tmp/fenta1.m4a -c:v copy -map 0:v:0 -map 1:a:0 -c:a aac -b:a 192k -shortest ./dist/pain.mp4  2>/dev/null
+    just rm

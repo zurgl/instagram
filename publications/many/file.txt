@@ -1,2 +1,0 @@
-file 'dist/vres.mp4'
-file 'dist/tom-ls-vid.mp4'

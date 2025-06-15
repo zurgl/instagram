@@ -1,0 +1,99 @@
+# cSpell:disable
+root := justfile_directory()
+export TYPST_ROOT := root
+set allow-duplicate-recipes := true
+set positional-arguments := true
+
+
+# @ ----------------
+# @ DEFAULT
+# @ ----------------
+[private]
+@default:
+  just -l
+
+# @mogrify -resize 800x640 ./gif/{{name}}.gif 
+# @ ----------------
+# @ CONVERT
+# @ ----------------
+
+[group('Convert')]
+apply name:
+  @magick ./webp/{{name}}.webp ./gif/{{name}}.gif 2>/dev/null 
+  @echo '{{BOLD + YELLOW}}- Convert to gif := {{name}}, done{{NORMAL}}'
+  @gifsicle ./gif/{{name}}.gif --colors 256 --resize 800x640 > ./gif/re-{{name}}.gif 
+  @echo '{{BOLD + YELLOW}}- resize to norm := {{name}}, done{{NORMAL}}'
+  @ffmpeg -f gif -i ./gif/re-{{name}}.gif ./mp4/{{name}}.mp4 2>/dev/null
+  @echo '{{BOLD + YELLOW}}- Convert to mp4 := {{name}}, done{{NORMAL}}'
+  ffmpeg -i ./mp4/{{name}}.mp4  -filter:v fps=30 ./mp4/fr-{{name}}.mp4 2>/dev/null 
+  ffmpeg -i ./mp4/fr-{{name}}.mp4 -vf scale=800:640 ./mp4/re-{{name}}.mp4 2>/dev/null
+  ffmpeg -i ./mp4/re-{{name}}.mp4 -b:v 1M -c:a copy ./mp4/br-{{name}}.mp4
+  ffmpeg -ss 0 -to 5 -i ./mp4/br-{{name}}.mp4 ./mp4/cu-{{name}}.mp4
+  echo -n " -i cu-{{name}}.mp4" >> "./mylist.txt"
+
+# Merged the mp4 to one file
+[group('convert')]
+concat values:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  cd ./mp4/
+  ffmpeg {{values}} -filter_complex xfade=transition=fade:duration=2:offset=5 ../dist/merged.mp4
+
+
+  # just concat ${inputs[@]}
+[group('convert')]
+test:
+  #!/usr/bin/env sh
+  files=$(echo -n $(cat mylist.txt | tr '\n' ' ') | tr '\n' ' ')
+  just concat "${files[@]}"
+
+
+# Convert the webp to gif to mp4
+[group('convert')]
+convert:
+  #!/usr/bin/env sh
+  touch "./mylist.txt"
+  for fullname in `find {{root}}/webp -iname '*.webp'`; do
+    name=$(echo $(basename $fullname) | cut -d'.' -f1)
+    just apply $name
+  done
+
+# @ ----------------
+# @ LISTING
+# @ ----------------
+
+[group('Listing')]
+[private]
+@show name:
+  printf '{{BOLD + CYAN}}  - %s{{NORMAL}}\n' {{name}};
+
+# List mp4 files into mylist.txt
+[group('Listing')]
+@mp4list:
+  cat ./mylist.txt
+
+# List input files
+[group('Listing')]
+list:
+  #!/usr/bin/env sh
+  for fullname in `find {{root}}/webp -iname '*.webp'`; do
+    name=$(echo $(basename $fullname))
+    just show $name
+  done
+
+# @ ----------------
+# @ CLEANING
+# @ ----------------
+
+# Cleaning thhe artefacts
+[group('cleaning')]
+clean:
+  rm -rfv ./gif/*
+  rm -rfv ./mp4/*
+  rm -rfv ./mylist.txt
+
+# Cleaning merged vids
+[group('cleaning')]
+rm-merge:
+  rm -rfv ./dist/merged.mp4
+

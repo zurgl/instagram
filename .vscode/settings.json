@@ -15,13 +15,13 @@
     "editor.codeActionsOnSave": ["source.fixAll"]
   },
   "files.exclude": {
-    "typstfmt.toml": true,
-    "/**/*/gru": true,
-    "/**/*/kaomoji": true,
-    "/**/*/crazy-maths": true,
-    "coding-girls": true,
+    "typstfmt.toml": false,
+    "/**/*/gru": false,
+    "/**/*/kaomoji": false,
+    "/**/*/crazy-maths": false,
+    "coding-girls": false,
     "img": false,
-    "simple": true,
-    ".trash": true
+    "simple": false,
+    ".trash": false
   }
 }

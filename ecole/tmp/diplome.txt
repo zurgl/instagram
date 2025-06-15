@@ -1,4 +1,0 @@
-pcm data loaded 288277
-loaded mel: [1, 80, 4500]
-0.0s -- 30.0s:  Tous les gens qui passent un diplôme savent pratiquement que ça ne sert à rien, qu'il n'y a pas de contenu, que c'est vide. Mais ceux qui n'ont pas passé le diplôme, c'est ceux-là qui donnent un sens plein au diplôme. Et le diplôme, moi je crois, il est fait précisément pour ceux qui ne l'ont pas.
-30.0s -- 45.0s:  ...
