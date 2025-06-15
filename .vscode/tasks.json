@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "sandbox",
+      "type": "shell",
+      "command": "just",
+      "args": [
+        "luck"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+    }
+  ]
+}

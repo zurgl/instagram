@@ -1,0 +1,5 @@
+clean:
+  rm -rf ./img/*.png
+
+gru:
+  typst compile --ppi 128 --pages 1 gru.typ ./img/gru.png

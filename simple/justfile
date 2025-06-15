@@ -1,0 +1,8 @@
+w-danse:
+  typst watch ./danse.typ ./img/danse.png
+
+danse: 
+  typst compile ./danse.typ ./img/danse.png
+
+clean:
+  rm -rf ./img/danse.png

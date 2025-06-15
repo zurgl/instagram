@@ -1,0 +1,27 @@
+{
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": false,
+  "tinymist.formatterMode": "typstyle",
+  "tinymist.previewFeature": "disable",
+  // "cSpell.language": "en,fr",
+  "[json][jsonc][txt]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.rulers": [110],
+    "editor.wordWrapColumn": 105,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": ["source.fixAll"]
+  },
+  "files.exclude": {
+    "typstfmt.toml": true,
+    "/**/*/gru": true,
+    "/**/*/kaomoji": true,
+    "/**/*/crazy-maths": true,
+    "coding-girls": true,
+    "img": false,
+    "simple": true,
+    ".trash": true
+  }
+}
