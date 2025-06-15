@@ -18,12 +18,12 @@ set positional-arguments := true
 [group('Cleaning')]
 [private]
 rm:
-    rm -rf ./img/*
-    touch ./img/.gitkeep
+    rm -rf ./dist/*
+    touch ./dist/.gitkeep
 
 [group('Build')]
 kaomoji: rm
-    typst compile --pages 1 kaomoji.typ ./img/kaomoji-1.png
-    typst compile --pages 2 kaomoji.typ ./img/kaomoji-2.png
-    typst compile --pages 3 kaomoji.typ ./img/kaomoji-3.png
+    typst compile --pages 1 kaomoji.typ ./dist/kaomoji-1.png
+    typst compile --pages 2 kaomoji.typ ./dist/kaomoji-2.png
+    typst compile --pages 3 kaomoji.typ ./dist/kaomoji-3.png
 
